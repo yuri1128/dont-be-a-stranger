@@ -75,6 +75,8 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: .05em; line-height: 1.5;
 }
 .br { display: inline; }
+.title a { display: block; color: inherit; touch-action: manipulation; }  /* tap the title = back to the menu */
+.title a:active { opacity: .6; }
 .date {
   margin: 12px 0 0; font-family: var(--pix); font-size: .72rem;
   letter-spacing: .2em; color: var(--dim);
