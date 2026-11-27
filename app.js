@@ -24,7 +24,7 @@
   document.title = "DON'T BE A STRANGER" + (current.date ? " · " + current.date : "");
 
   /* ---------- SCREENS (home / album / fortune) via the #hash ---------- */
-  const views = { home: $("#v-home"), album: $("#v-album"), fortune: $("#v-fortune"), book: $("#v-book") };
+  const views = { home: $("#v-home"), album: $("#v-album"), fortune: $("#v-fortune"), book: $("#v-book"), coin: $("#v-coin") };
   let active = null;
 
   function show(name) {
@@ -55,8 +55,9 @@
     }
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === "1") location.hash = "album";
-    if (e.key === "2") location.hash = "fortune";
-    if (e.key === "3") location.hash = "book";
+    if (e.key === "2") location.hash = "book";
+    if (e.key === "3") location.hash = "fortune";
+    if (e.key === "4") location.hash = "coin";
     if (e.key === "0") location.hash = "";
   });
 
@@ -615,6 +616,76 @@
     busyF = false;
   }
   if (btn) btn.addEventListener("click", reveal);
+
+  /* ============================================================
+     COIN FLIP — call it, flip it, keep a streak
+     ============================================================ */
+  (() => {
+    const coinEl = $("#coin"), msgEl = $("#coin-msg"), scoreEl = $("#coin-score"), promptEl = $("#coin-prompt");
+    const bH = $("#c-heads"), bT = $("#c-tails");
+    if (!coinEl) return;
+    const W = 15;
+    const ctr = (s, w) => { if (s.length > w) s = ""; const l = Math.floor((w - s.length) / 2); return " ".repeat(l) + s + " ".repeat(w - s.length - l); };
+    const FACE = {
+      H: { eyes: "^ ^", mid: "HEADS", mouth: "w" },
+      T: { eyes: "- -", mid: "TAILS", mouth: "o" }
+    };
+    function coin(n, face) {            // n = inner width (odd): wide = 11 ... edge-on = 1
+      const f = FACE[face], tw = n + 2, m = Math.floor((W - tw) / 2), sp = (k) => " ".repeat(Math.max(0, k));
+      const line = (a, s, b) => sp(m - 1) + a + ctr(s, tw) + b;
+      return [
+        sp(m) + "." + "-".repeat(n) + ".",
+        line("/", f.eyes, "\\"),
+        line("|", f.mid, "|"),
+        line("\\", f.mouth, "/"),
+        sp(m) + "'" + "-".repeat(n) + "'",
+      ].join("\n");
+    }
+    const WIDTHS = [11, 9, 7, 5, 3, 1, 3, 5, 7, 9, 11];
+    const LOSE = ["the coin has other plans.", "unlucky. flip again.", "so close. not that close.", "the universe said no."];
+    const WIN = ["called it.", "the coin respects you.", "nice. suspicious, but nice.", "lucky. don't push it."];
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+
+    let streak = 0, best = 0, busy = false, shown = "H";
+    try { best = parseInt(localStorage.getItem("dbas-coin-best") || "0", 10) || 0; } catch (e) { /* ignore */ }
+    const score = () => { scoreEl.textContent = "streak " + streak + " · best " + best; };
+    coinEl.textContent = coin(11, "H"); score();
+
+    async function flip(call) {
+      if (busy) return;
+      busy = true; bH.disabled = bT.disabled = true;
+      const result = Math.random() < 0.5 ? "H" : "T";
+      msgEl.textContent = " "; promptEl.textContent = "> you called " + (call === "H" ? "heads" : "tails") + ".";
+      if (reduce) { shown = result; coinEl.textContent = coin(11, result); }
+      else {
+        let face = shown;
+        const passes = 3;
+        for (let p = 0; p < passes; p++) {
+          for (let i = 0; i < WIDTHS.length; i++) {
+            if (i === 5) face = face === "H" ? "T" : "H";               // flips over at the edge
+            if (p === passes - 1 && i >= 5) face = result;               // last half-turn lands on the answer
+            coinEl.textContent = coin(WIDTHS[i], face);
+            await wait(70);
+          }
+        }
+        shown = result;
+      }
+      const won = call === result;
+      streak = won ? streak + 1 : 0;
+      if (streak > best) { best = streak; try { localStorage.setItem("dbas-coin-best", String(best)); } catch (e) { /* ignore */ } }
+      msgEl.textContent = "> " + (result === "H" ? "heads" : "tails") + ". " + pick(won ? WIN : LOSE);
+      promptEl.textContent = "> call it in the air.";
+      score();
+      busy = false; bH.disabled = bT.disabled = false;
+    }
+    bH.addEventListener("click", () => flip("H"));
+    bT.addEventListener("click", () => flip("T"));
+    document.addEventListener("keydown", (e) => {
+      if (location.hash !== "#coin" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "h" || e.key === "H") flip("H");
+      if (e.key === "t" || e.key === "T") flip("T");
+    });
+  })();
 
   /* ---------- go ---------- */
   route();

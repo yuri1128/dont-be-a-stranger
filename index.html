@@ -16,7 +16,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='black'/%3E%3Ctext x='16' y='22' font-size='14' fill='white' text-anchor='middle' font-family='monospace'%3EYS%3C/text%3E%3C/svg%3E">
   <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/vt323-400.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 
@@ -39,15 +39,20 @@
             <span class="n">THE ALBUM</span>
             <span class="d">leave a frame. see who was here.</span>
           </a>
-          <a class="item" href="#fortune">
+          <a class="item" href="#book">
             <span class="k">[2]</span>
+            <span class="n">THE GUEST BOOK</span>
+            <span class="d">sign it. say hi. leave a line.</span>
+          </a>
+          <a class="item" href="#fortune">
+            <span class="k">[3]</span>
             <span class="n">YOUR FORTUNE</span>
             <span class="d">ask. don't overthink it.</span>
           </a>
-          <a class="item" href="#book">
-            <span class="k">[3]</span>
-            <span class="n">THE GUEST BOOK</span>
-            <span class="d">sign it. say hi. leave a line.</span>
+          <a class="item" href="#coin">
+            <span class="k">[4]</span>
+            <span class="n">COIN FLIP</span>
+            <span class="d">heads or tails. call it.</span>
           </a>
         </nav>
         <p class="line prompt" aria-hidden="true">&gt;<span class="cursor">_</span></p>
@@ -107,6 +112,24 @@
         <a class="btn back" href="#">[0] BACK TO MENU</a>
       </section>
 
+      <!-- ===== COIN FLIP ===== -->
+      <section class="view" id="v-coin" hidden aria-labelledby="coin-h">
+        <h2 class="sr-only" id="coin-h">Coin Flip</h2>
+        <div class="subhead">
+          <p class="line">&gt; coin flip</p>
+          <a class="mini" href="#">[0] BACK</a>
+        </div>
+        <p class="line dim" id="coin-prompt">&gt; call it in the air.</p>
+        <pre class="coin" id="coin" aria-hidden="true"></pre>
+        <p class="line coin-msg" id="coin-msg" aria-live="polite">&nbsp;</p>
+        <div class="bar coin-bar">
+          <button class="btn primary" id="c-heads" type="button">[H] HEADS</button>
+          <button class="btn primary" id="c-tails" type="button">[T] TAILS</button>
+        </div>
+        <p class="small" id="coin-score">streak 0 &middot; best 0</p>
+        <a class="btn back" href="#">[0] BACK TO MENU</a>
+      </section>
+
       <!-- ===== YOUR FORTUNE ===== -->
       <section class="view" id="v-fortune" hidden aria-labelledby="fortune-h">
         <h2 class="sr-only" id="fortune-h">Your Fortune</h2>
@@ -158,8 +181,8 @@
     </div>
   </div>
 
-  <script src="config.js?v=6"></script>
-  <script src="fortunes.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="config.js?v=7"></script>
+  <script src="fortunes.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
