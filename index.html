@@ -16,7 +16,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='black'/%3E%3Ctext x='16' y='22' font-size='14' fill='white' text-anchor='middle' font-family='monospace'%3EYS%3C/text%3E%3C/svg%3E">
   <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/vt323-400.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
 
@@ -58,6 +58,11 @@
             <span class="k">[5]</span>
             <span class="n">SPIN THE BOTTLE</span>
             <span class="d">spin. answer. or do the dare.</span>
+          </a>
+          <a class="item" href="#quiz">
+            <span class="k">[6]</span>
+            <span class="n">PERSONALITY QUIZ</span>
+            <span class="d">what kind of stranger are you?</span>
           </a>
         </nav>
         <p class="line prompt" aria-hidden="true">&gt;<span class="cursor">_</span></p>
@@ -156,6 +161,36 @@
         <a class="btn back" href="#">[0] BACK TO MENU</a>
       </section>
 
+      <!-- ===== PERSONALITY QUIZ ===== -->
+      <section class="view" id="v-quiz" hidden aria-labelledby="quiz-h">
+        <h2 class="sr-only" id="quiz-h">Personality Quiz</h2>
+        <div class="subhead">
+          <p class="line">&gt; quiz</p>
+          <a class="mini" href="#">[0] BACK</a>
+        </div>
+        <div id="quiz-intro">
+          <p class="line">&gt; what kind of stranger are you?</p>
+          <p class="line dim">&gt; 7 questions. no wrong answers. be honest.</p>
+          <div class="bar"><button class="btn primary" id="q-start" type="button">[+] START</button></div>
+        </div>
+        <div id="quiz-q" hidden>
+          <p class="small" id="q-prog"></p>
+          <p class="q-text" id="q-text"></p>
+          <div class="q-answers" id="q-answers"></div>
+        </div>
+        <div id="quiz-r" hidden>
+          <p class="line dim">&gt; you are...</p>
+          <div class="slip">
+            <div class="slip-top"><span>YS</span><span>YOU ARE</span></div>
+            <div class="crit-wrap" aria-hidden="true"><pre class="crit" id="r-crit"></pre></div>
+            <p class="r-name" id="r-name"></p>
+            <p class="r-text" id="r-text"></p>
+          </div>
+          <div class="bar"><button class="btn primary" id="q-again" type="button">[R] TAKE IT AGAIN</button></div>
+        </div>
+        <a class="btn back" href="#">[0] BACK TO MENU</a>
+      </section>
+
       <!-- ===== YOUR FORTUNE ===== -->
       <section class="view" id="v-fortune" hidden aria-labelledby="fortune-h">
         <h2 class="sr-only" id="fortune-h">Your Fortune</h2>
@@ -207,9 +242,10 @@
     </div>
   </div>
 
-  <script src="config.js?v=11"></script>
-  <script src="fortunes.js?v=11"></script>
-  <script src="prompts.js?v=11"></script>
-  <script src="app.js?v=11"></script>
+  <script src="config.js?v=12"></script>
+  <script src="fortunes.js?v=12"></script>
+  <script src="prompts.js?v=12"></script>
+  <script src="quiz.js?v=12"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>

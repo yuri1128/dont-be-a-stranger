@@ -24,7 +24,7 @@
   document.title = "DON'T BE A STRANGER" + (current.date ? " · " + current.date : "");
 
   /* ---------- SCREENS (home / album / fortune) via the #hash ---------- */
-  const views = { home: $("#v-home"), album: $("#v-album"), fortune: $("#v-fortune"), book: $("#v-book"), coin: $("#v-coin"), spin: $("#v-spin") };
+  const views = { home: $("#v-home"), album: $("#v-album"), fortune: $("#v-fortune"), book: $("#v-book"), coin: $("#v-coin"), spin: $("#v-spin"), quiz: $("#v-quiz") };
   let active = null;
 
   function show(name) {
@@ -59,6 +59,7 @@
     if (e.key === "3") location.hash = "fortune";
     if (e.key === "4") location.hash = "coin";
     if (e.key === "5") location.hash = "spin";
+    if (e.key === "6") location.hash = "quiz";
     if (e.key === "0") location.hash = "";
   });
 
@@ -763,6 +764,57 @@
       if (location.hash !== "#spin" || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "s" || e.key === "S") spin();
     });
+  })();
+
+  /* ============================================================
+     PERSONALITY QUIZ — questions and results live in quiz.js
+     ============================================================ */
+  (() => {
+    const Z = window.QUIZ;
+    const intro = $("#quiz-intro"), qBox = $("#quiz-q"), rBox = $("#quiz-r");
+    if (!Z || !intro) return;
+    const prog = $("#q-prog"), qText = $("#q-text"), ans = $("#q-answers");
+    const rCrit = $("#r-crit"), rName = $("#r-name"), rText = $("#r-text");
+    let i = 0, tally = {}, order = [], timer = 0;
+
+    function showOnly(box) { intro.hidden = box !== intro; qBox.hidden = box !== qBox; rBox.hidden = box !== rBox; window.scrollTo(0, 0); }
+    function start() { i = 0; tally = {}; order = []; clearInterval(timer); ask(); }
+    function ask() {
+      const q = Z.questions[i];
+      showOnly(qBox);
+      prog.textContent = "question " + (i + 1) + " of " + Z.questions.length;
+      qText.textContent = q.q;
+      ans.textContent = "";
+      q.a.forEach(([label, key]) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "q-ans"; b.textContent = label;
+        b.addEventListener("click", () => {
+          tally[key] = (tally[key] || 0) + 1; order.push(key);
+          if (++i < Z.questions.length) ask(); else finish();
+        });
+        ans.appendChild(b);
+      });
+    }
+    function finish() {
+      const max = Math.max(...Object.values(tally));
+      const tied = Object.keys(tally).filter((k) => tally[k] === max);
+      // tie? the most recent matching answer wins
+      let key = tied[0];
+      for (let n = order.length - 1; n >= 0; n--) if (tied.includes(order[n])) { key = order[n]; break; }
+      const r = Z.results[key];
+      showOnly(rBox);
+      rName.textContent = r.name; rText.textContent = r.text;
+      const c = CRITTERS[r.critter]; let f = 0;
+      rCrit.textContent = critText(c, 0);
+      clearInterval(timer);
+      if (!reduce) timer = setInterval(() => {
+        if (location.hash !== "#quiz" || document.hidden) return;
+        f ^= 1; rCrit.textContent = critText(c, f);
+      }, 650);
+    }
+    $("#q-start").addEventListener("click", start);
+    $("#q-again").addEventListener("click", start);
+    window.addEventListener("hashchange", () => { if (location.hash !== "#quiz") { clearInterval(timer); showOnly(intro); } });
   })();
 
   /* ---------- go ---------- */
