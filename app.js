@@ -24,7 +24,7 @@
   document.title = "DON'T BE A STRANGER" + (current.date ? " · " + current.date : "");
 
   /* ---------- SCREENS (home / album / fortune) via the #hash ---------- */
-  const views = { home: $("#v-home"), album: $("#v-album"), fortune: $("#v-fortune"), book: $("#v-book"), coin: $("#v-coin") };
+  const views = { home: $("#v-home"), album: $("#v-album"), fortune: $("#v-fortune"), book: $("#v-book"), coin: $("#v-coin"), spin: $("#v-spin") };
   let active = null;
 
   function show(name) {
@@ -58,6 +58,7 @@
     if (e.key === "2") location.hash = "book";
     if (e.key === "3") location.hash = "fortune";
     if (e.key === "4") location.hash = "coin";
+    if (e.key === "5") location.hash = "spin";
     if (e.key === "0") location.hash = "";
   });
 
@@ -693,6 +694,74 @@
     document.addEventListener("keydown", (e) => {
       if (location.hash !== "#coin" || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "f" || e.key === "F") flip();
+    });
+  })();
+
+  /* ============================================================
+     SPIN THE BOTTLE — spin it, it points at someone, they get a question (or a dare)
+     ============================================================ */
+  (() => {
+    const bottleEl = $("#bottle"), msgEl = $("#spin-msg"), btn = $("#s-spin");
+    const card = $("#spin-card"), qEl = $("#sc-q"), dEl = $("#sc-d");
+    if (!bottleEl) return;
+    const Q = window.BOTTLE_QUESTIONS || [], D = window.BOTTLE_DARES || [];
+    const ROWS = 13, COLS = 27, CY = 6, CX = 13;
+    function draw(th) {
+      const g = Array.from({ length: ROWS }, () => Array(COLS).fill(" "));
+      const put = (x, y, ch) => { if (x >= 0 && x < COLS && y >= 0 && y < ROWS) g[y][x] = ch; };
+      for (let k = 0; k < 40; k++) {                    // the "table" ring (x is doubled: letters are ~2x taller than wide)
+        const a = (k / 40) * Math.PI * 2;
+        put(Math.round(CX + 2 * 6 * Math.cos(a)), Math.round(CY + 6 * Math.sin(a)), ".");
+      }
+      for (let r = -4.2; r <= 4.7; r += 0.2) {
+        const x = Math.round(CX + 2 * r * Math.cos(th)), y = Math.round(CY + r * Math.sin(th));
+        put(x, y, r < 0.8 ? "#" : r < 2.9 ? "=" : r < 3.9 ? "+" : "@");
+        if (r < 0.8) put(x + 1, y, "#");            // chunkier body
+      }
+      return g.map((row) => row.join("")).join("\n");
+    }
+    function bag(arr) {
+      let b = [], last = -1;
+      return () => {
+        if (!b.length) {
+          b = arr.map((_, i) => i);
+          for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; }
+          if (b.length > 1 && b[b.length - 1] === last) [b[0], b[b.length - 1]] = [b[b.length - 1], b[0]];
+        }
+        last = b.pop(); return arr[last];
+      };
+    }
+    const nextQ = bag(Q), nextD = bag(D);
+    let angle = Math.random() * Math.PI * 2, busy = false;
+    bottleEl.textContent = draw(angle);
+
+    async function spin() {
+      if (busy) return;
+      busy = true; btn.disabled = true; card.hidden = true;
+      msgEl.textContent = "> round and round...";
+      const total = (3 + Math.random() * 2) * Math.PI * 2 + Math.random() * Math.PI * 2, start = angle;
+      if (reduce) angle = start + total;
+      else {
+        const N = 64;
+        for (let i = 1; i <= N; i++) {
+          const t = i / N;
+          angle = start + total * (1 - Math.pow(1 - t, 3));
+          bottleEl.textContent = draw(angle);
+          await wait(28 + t * t * 110);
+        }
+      }
+      bottleEl.textContent = draw(angle);
+      msgEl.textContent = "> the bottle has chosen.";
+      qEl.textContent = nextQ() || "";
+      dEl.textContent = nextD() || "";
+      card.hidden = false;
+      busy = false; btn.disabled = false;
+      btn.textContent = "[S] SPIN AGAIN";
+    }
+    btn.addEventListener("click", spin);
+    document.addEventListener("keydown", (e) => {
+      if (location.hash !== "#spin" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "s" || e.key === "S") spin();
     });
   })();
 

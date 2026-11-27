@@ -16,7 +16,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='black'/%3E%3Ctext x='16' y='22' font-size='14' fill='white' text-anchor='middle' font-family='monospace'%3EYS%3C/text%3E%3C/svg%3E">
   <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/vt323-400.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
 
@@ -53,6 +53,11 @@
             <span class="k">[4]</span>
             <span class="n">COIN FLIP</span>
             <span class="d">heads or tails. call it.</span>
+          </a>
+          <a class="item" href="#spin">
+            <span class="k">[5]</span>
+            <span class="n">SPIN THE BOTTLE</span>
+            <span class="d">spin. answer. or do the dare.</span>
           </a>
         </nav>
         <p class="line prompt" aria-hidden="true">&gt;<span class="cursor">_</span></p>
@@ -129,6 +134,28 @@
         <a class="btn back" href="#">[0] BACK TO MENU</a>
       </section>
 
+      <!-- ===== SPIN THE BOTTLE ===== -->
+      <section class="view" id="v-spin" hidden aria-labelledby="spin-h">
+        <h2 class="sr-only" id="spin-h">Spin the Bottle</h2>
+        <div class="subhead">
+          <p class="line">&gt; spin the bottle</p>
+          <a class="mini" href="#">[0] BACK</a>
+        </div>
+        <p class="line dim" id="spin-msg" aria-live="polite">&gt; sit in a circle. put me on the floor.</p>
+        <pre class="bottle" id="bottle" aria-hidden="true"></pre>
+        <div class="bar coin-bar">
+          <button class="btn primary" id="s-spin" type="button">[S] SPIN</button>
+        </div>
+        <div class="spincard" id="spin-card" hidden aria-live="polite">
+          <p class="sc-l">ASK:</p>
+          <p class="sc-t" id="sc-q"></p>
+          <p class="sc-l">OR DARE:</p>
+          <p class="sc-t" id="sc-d"></p>
+        </div>
+        <p class="small">whoever it points at answers the question, or does the dare. no skipping both.</p>
+        <a class="btn back" href="#">[0] BACK TO MENU</a>
+      </section>
+
       <!-- ===== YOUR FORTUNE ===== -->
       <section class="view" id="v-fortune" hidden aria-labelledby="fortune-h">
         <h2 class="sr-only" id="fortune-h">Your Fortune</h2>
@@ -180,8 +207,9 @@
     </div>
   </div>
 
-  <script src="config.js?v=9"></script>
-  <script src="fortunes.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="config.js?v=11"></script>
+  <script src="fortunes.js?v=11"></script>
+  <script src="prompts.js?v=11"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>

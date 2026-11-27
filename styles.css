@@ -250,6 +250,16 @@ a { color: inherit; text-decoration: none; }
 .coin-msg { text-align: center; min-height: 1.6em; font-size: 1.6rem; }
 .coin-bar .btn { flex: 1 1 140px; min-height: 60px; }
 
+.bottle {
+  margin: 14px auto 6px; text-align: left; width: max-content;
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, "DejaVu Sans Mono", "Liberation Mono", "Courier New", monospace;
+  font-size: clamp(.8rem, 3.9vw, 1.05rem); line-height: 1.12; white-space: pre; color: var(--ink);
+}
+.spincard { border: 2px dotted var(--ink); padding: 14px 16px; margin: 6px 0 4px; }
+.spincard .sc-l { margin: 0; font-family: var(--pix); font-size: .6rem; letter-spacing: .1em; color: var(--dim); }
+.spincard .sc-t { margin: 6px 0 14px; font-size: 1.7rem; line-height: 1.08; }
+.spincard .sc-t:last-child { margin-bottom: 2px; }
+
 /* ---------- FOOTER ---------- */
 .foot {
   margin-top: 26px; padding-top: 14px; border-top: 1px dotted var(--line);
