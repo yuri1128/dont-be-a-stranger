@@ -19,8 +19,8 @@ window.SITE_CONFIG = {
      Leave both empty and the album says "not open yet".
      (README.md has the 5-minute setup.)                                */
   cloudinary: {
-    cloudName: "",
-    uploadPreset: ""
+    cloudName: "sfipuk7z",
+    uploadPreset: "stranger_2026"
   },
 
   /* true = thumbnails in black & white (full-size photo opens in colour) */
