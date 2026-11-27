@@ -327,10 +327,10 @@
 
   /* ============================================================
      THE GUEST BOOK — no server needed.
-     Each line is saved as a tiny 1x1 image on Cloudinary whose
-     public_id *is* the (encoded) message. The list is read back
-     with the same "list by tag" trick the album uses.
-     To remove a line: Cloudinary > Media Library > delete it.
+     Each signature is drawn onto a small black "note" image in the
+     browser and uploaded to Cloudinary under its own tag (like a photo).
+     The list is read back with the same "list by tag" trick the album uses.
+     To remove a note: Cloudinary > Media Library > delete it.
      ============================================================ */
   const book = (() => {
     const cc = cfg.cloudinary || {};
@@ -339,48 +339,53 @@
     const form = $("#book-form"), nameEl = $("#b-name"), msgEl = $("#b-msg");
     const countEl = $("#b-count"), sendBtn = $("#b-send");
     const statusEl = $("#b-status"), listEl = $("#b-list");
-    const PIXEL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
-    const MAX_BYTES = 150;                       // keeps the public_id under Cloudinary's limit
     let entries = new Map(), lastSig = "", pollId = null, busy = false;
 
     const setStatus = (t) => { statusEl.textContent = t ? "> " + t : ""; };
-    const enc = (str) => {
-      const bytes = new TextEncoder().encode(str);
-      let bin = ""; bytes.forEach((b) => { bin += String.fromCharCode(b); });
-      return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    };
-    const dec = (b64) => {
-      try {
-        const s = b64.replace(/-/g, "+").replace(/_/g, "/");
-        const bin = atob(s + "=".repeat((4 - (s.length % 4)) % 4));
-        return new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0)));
-      } catch (e) { return null; }
-    };
-    const parse = (id) => {
-      const m = /^gb_([A-Za-z0-9_-]+?)_[a-z0-9]{4}$/.exec(id.split("/").pop());
-      if (!m) return null;
-      const raw = dec(m[1]);
-      if (raw == null) return null;
-      const i = raw.indexOf("\n");
-      return { name: (i < 0 ? "" : raw.slice(0, i)).trim(), msg: (i < 0 ? raw : raw.slice(i + 1)).trim() };
-    };
+    const imgUrl = (e) => "https://res.cloudinary.com/" + cc.cloudName + "/image/upload/c_limit,w_720,q_auto,f_auto/v" + e.version + "/" + e.id;
+
+    /* draw the note: white text on black, wrapped to fit */
+    async function drawNote(name, msg) {
+      try { await document.fonts.load('40px "VT323"'); } catch (e) { /* ignore */ }
+      const W = 720, pad = 36, fs = 44, lh = 48;
+      const font = fs + 'px "VT323", "Courier New", monospace';
+      const c = document.createElement("canvas");
+      const g = c.getContext("2d");
+      g.font = font;
+      const words = msg.split(" "), lines = [];
+      let cur = "";
+      for (const w of words) {
+        const t = cur ? cur + " " + w : w;
+        if (g.measureText(t).width <= W - pad * 2 || !cur) cur = t; else { lines.push(cur); cur = w; }
+      }
+      if (cur) lines.push(cur);
+      const H = pad + lines.length * lh + 20 + lh + pad - 8;
+      c.width = W; c.height = H;
+      g.fillStyle = "#000"; g.fillRect(0, 0, W, H);
+      g.fillStyle = "#f4f4f2"; g.font = font; g.textBaseline = "top";
+      lines.forEach((l, i) => g.fillText(l, pad, pad + i * lh));
+      g.fillStyle = "#9a9a9a";
+      g.fillText("- " + (name || "a stranger"), pad, pad + lines.length * lh + 20);
+      return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("couldn't draw note"))), "image/png"));
+    }
 
     function render() {
-      const list = [...entries.values()].filter((e) => e.msg).sort((a, b) => (b.t || "").localeCompare(a.t || ""));
+      const list = [...entries.values()].sort((a, b) => (b.t || "").localeCompare(a.t || ""));
       const sig = list.map((e) => e.id).join("|");
       if (sig === lastSig) return;
       lastSig = sig;
       listEl.textContent = "";
       list.forEach((e) => {
         const d = document.createElement("div"); d.className = "entry";
-        const m = document.createElement("p"); m.className = "m"; m.textContent = e.msg;
+        const im = document.createElement("img"); im.className = "note-img";
+        im.src = e.blobUrl || imgUrl(e); im.alt = "guest book note"; im.decoding = "async";
         const w = document.createElement("p"); w.className = "w";
         let when = "";
         try { when = new Date(e.t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).toUpperCase(); } catch (x) { /* ignore */ }
-        w.textContent = "— " + (e.name || "a stranger") + (when ? " · " + when : "");
-        d.append(m, w); listEl.appendChild(d);
+        w.textContent = when;
+        d.append(im, w); listEl.appendChild(d);
       });
-      setStatus(list.length ? list.length + (list.length === 1 ? " line" : " lines") : "nobody's signed yet. be the first.");
+      setStatus(list.length ? list.length + (list.length === 1 ? " note" : " notes") : "nobody's signed yet. be the first.");
     }
 
     async function load() {
@@ -392,9 +397,8 @@
           if (!r.ok) throw new Error("HTTP " + r.status);
           res = (await r.json()).resources || [];
         }
-        const fresh = new Map();
-        res.forEach((x) => { const p = parse(x.public_id); if (p) fresh.set(x.public_id, { id: x.public_id, t: x.created_at || "", ...p }); });
-        for (const [id, e] of entries) if (e.opt && Date.now() - e.optAt < 120000 && !fresh.has(id)) fresh.set(id, e);
+        const fresh = new Map(res.map((x) => [x.public_id, { id: x.public_id, version: x.version, t: x.created_at || "" }]));
+        for (const [id, e] of entries) if (e.opt && Date.now() - e.optAt < 180000 && !fresh.has(id)) fresh.set(id, e);
         entries = fresh;
         render();
         if (!entries.size) setStatus("nobody's signed yet. be the first.");
@@ -404,12 +408,7 @@
       }
     }
 
-    const bytesLeft = () => MAX_BYTES - new TextEncoder().encode(nameEl.value.trim() + "\n" + msgEl.value.trim()).length;
-    function updateCount() {
-      const left = Math.min(msgEl.maxLength - msgEl.value.length, bytesLeft());
-      countEl.textContent = left >= 0 ? left + " left" : "a bit shorter please";
-    }
-    nameEl.addEventListener("input", updateCount);
+    const updateCount = () => { countEl.textContent = (msgEl.maxLength - msgEl.value.length) + " left"; };
     msgEl.addEventListener("input", updateCount);
 
     form.addEventListener("submit", async (ev) => {
@@ -417,30 +416,28 @@
       if (busy || !configured) return;
       const name = nameEl.value.trim().replace(/\s+/g, " "), msg = msgEl.value.trim().replace(/\s+/g, " ");
       if (!msg) { setStatus("write something first."); msgEl.focus(); return; }
-      if (bytesLeft() < 0) { setStatus("a bit shorter please."); return; }
       busy = true; sendBtn.disabled = true; setStatus("signing...");
-      const id = "gb_" + enc(name + "\n" + msg) + "_" + Math.random().toString(36).slice(2, 6).padEnd(4, "0");
       try {
-        await new Promise((resolve, reject) => {
+        const blob = await drawNote(name, msg);
+        const j = await new Promise((resolve, reject) => {
           const x = new XMLHttpRequest();
           x.open("POST", "https://api.cloudinary.com/v1_1/" + cc.cloudName + "/image/upload");
           x.onload = () => {
-            let j = {}; try { j = JSON.parse(x.responseText); } catch (e) { /* ignore */ }
-            if (x.status >= 200 && x.status < 300 && j.public_id) resolve(j);
-            else reject(new Error((j.error && j.error.message) || "error " + x.status));
+            let r = {}; try { r = JSON.parse(x.responseText); } catch (e) { /* ignore */ }
+            if (x.status >= 200 && x.status < 300 && r.public_id) resolve(r);
+            else reject(new Error((r.error && r.error.message) || "error " + x.status));
           };
           x.onerror = () => reject(new Error("no connection"));
           const fd = new FormData();
-          fd.append("file", PIXEL);
+          fd.append("file", blob, "note-" + Date.now() + ".png");
           fd.append("upload_preset", cc.uploadPreset);
           fd.append("tags", tag);
-          fd.append("public_id", id);
           x.send(fd);
         });
-        entries.set(id, { id, name, msg, t: new Date().toISOString(), opt: true, optAt: Date.now() });
+        entries.set(j.public_id, { id: j.public_id, version: j.version, t: j.created_at || new Date().toISOString(), opt: true, optAt: Date.now(), blobUrl: URL.createObjectURL(blob) });
         lastSig = ""; render();
         msgEl.value = ""; updateCount();
-        setStatus("signed. thanks for stopping by.");
+        setStatus("signed. it can take a minute to show up on other phones.");
       } catch (err) {
         console.warn("[guest book] couldn't sign:", err.message);
         setStatus("didn't go through (" + (err.message || "error") + "). try again.");
