@@ -618,72 +618,81 @@
   if (btn) btn.addEventListener("click", reveal);
 
   /* ============================================================
-     COIN FLIP — call it, flip it, keep a streak
+     COIN FLIP — one button, pure luck
      ============================================================ */
   (() => {
     const coinEl = $("#coin"), msgEl = $("#coin-msg"), scoreEl = $("#coin-score"), promptEl = $("#coin-prompt");
-    const bH = $("#c-heads"), bT = $("#c-tails");
+    const btn = $("#c-flip");
     if (!coinEl) return;
-    const W = 15;
-    const ctr = (s, w) => { if (s.length > w) s = ""; const l = Math.floor((w - s.length) / 2); return " ".repeat(l) + s + " ".repeat(w - s.length - l); };
+    // Letters are about twice as tall as they are wide, so the coin is drawn 7 rows tall
+    // and ~15 columns wide to look round. f = how "open" the coin is (1 = facing you, 0 = edge-on).
+    const R = 7.4, CX = 8, ROWS = 7;
     const FACE = {
       H: { eyes: "^ ^", mid: "HEADS", mouth: "w" },
       T: { eyes: "- -", mid: "TAILS", mouth: "o" }
     };
-    function coin(n, face) {            // n = inner width (odd): wide = 11 ... edge-on = 1
-      const f = FACE[face], tw = n + 2, m = Math.floor((W - tw) / 2), sp = (k) => " ".repeat(Math.max(0, k));
-      const line = (a, s, b) => sp(m - 1) + a + ctr(s, tw) + b;
-      return [
-        sp(m) + "." + "-".repeat(n) + ".",
-        line("/", f.eyes, "\\"),
-        line("|", f.mid, "|"),
-        line("\\", f.mouth, "/"),
-        sp(m) + "'" + "-".repeat(n) + "'",
-      ].join("\n");
+    const ctr = (s, w) => { if (s.length > w) return " ".repeat(w); const l = Math.floor((w - s.length) / 2); return " ".repeat(l) + s + " ".repeat(w - s.length - l); };
+    function coin(f, face) {
+      const fc = FACE[face], out = [];
+      for (let i = 0; i < ROWS; i++) {
+        const y = (i - 3) * 2;
+        const hw = Math.sqrt(Math.max(0, R * R - y * y)) * f;
+        const l = Math.round(CX - hw), r = Math.round(CX + hw);
+        const lead = " ".repeat(Math.max(0, l));
+        if (r - l < 2) {                                  // edge-on: a thin slab
+          out.push(" ".repeat(CX) + (i === 0 ? "." : i === ROWS - 1 ? "'" : "|"));
+          continue;
+        }
+        const inner = r - l - 1;
+        if (i === 0) out.push(lead + "." + "-".repeat(inner) + ".");
+        else if (i === ROWS - 1) out.push(lead + "'" + "-".repeat(inner) + "'");
+        else {
+          const t = i === 2 ? fc.eyes : i === 3 ? fc.mid : i === 4 ? fc.mouth : "";
+          out.push(lead + "(" + ctr(t, inner) + ")");
+        }
+      }
+      return out.join("\n");
     }
-    const WIDTHS = [11, 9, 7, 5, 3, 1, 3, 5, 7, 9, 11];
-    const LOSE = ["the coin has other plans.", "unlucky. flip again.", "so close. not that close.", "the universe said no."];
-    const WIN = ["called it.", "the coin respects you.", "nice. suspicious, but nice.", "lucky. don't push it."];
+    const SPIN = [1, 0.9, 0.7, 0.45, 0.2, 0.05, 0.2, 0.45, 0.7, 0.9, 1];   // index 5 = edge-on
+    const SAY = {
+      H: ["heads.", "heads. the coin has spoken.", "heads. obviously.", "heads. no notes."],
+      T: ["tails.", "tails. the coin has spoken.", "tails. obviously.", "tails. no notes."]
+    };
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
-    let streak = 0, best = 0, busy = false, shown = "H";
-    try { best = parseInt(localStorage.getItem("dbas-coin-best") || "0", 10) || 0; } catch (e) { /* ignore */ }
-    const score = () => { scoreEl.textContent = "streak " + streak + " · best " + best; };
-    coinEl.textContent = coin(11, "H"); score();
+    let heads = 0, tails = 0, busy = false, shown = "H";
+    const score = () => { scoreEl.textContent = "heads " + heads + " · tails " + tails; };
+    coinEl.textContent = coin(1, "H"); score();
 
-    async function flip(call) {
+    async function flip() {
       if (busy) return;
-      busy = true; bH.disabled = bT.disabled = true;
+      busy = true; btn.disabled = true;
       const result = Math.random() < 0.5 ? "H" : "T";
-      msgEl.textContent = " "; promptEl.textContent = "> you called " + (call === "H" ? "heads" : "tails") + ".";
-      if (reduce) { shown = result; coinEl.textContent = coin(11, result); }
+      msgEl.textContent = " "; promptEl.textContent = "> in the air...";
+      if (reduce) { shown = result; coinEl.textContent = coin(1, result); }
       else {
         let face = shown;
         const passes = 3;
         for (let p = 0; p < passes; p++) {
-          for (let i = 0; i < WIDTHS.length; i++) {
-            if (i === 5) face = face === "H" ? "T" : "H";               // flips over at the edge
+          for (let i = 0; i < SPIN.length; i++) {
+            if (i === 5) face = face === "H" ? "T" : "H";                // turns over at the edge
             if (p === passes - 1 && i >= 5) face = result;               // last half-turn lands on the answer
-            coinEl.textContent = coin(WIDTHS[i], face);
+            coinEl.textContent = coin(SPIN[i], face);
             await wait(70);
           }
         }
         shown = result;
       }
-      const won = call === result;
-      streak = won ? streak + 1 : 0;
-      if (streak > best) { best = streak; try { localStorage.setItem("dbas-coin-best", String(best)); } catch (e) { /* ignore */ } }
-      msgEl.textContent = "> " + (result === "H" ? "heads" : "tails") + ". " + pick(won ? WIN : LOSE);
-      promptEl.textContent = "> call it in the air.";
+      if (result === "H") heads++; else tails++;
+      msgEl.textContent = "> " + pick(SAY[result]);
+      promptEl.textContent = "> flip again?";
       score();
-      busy = false; bH.disabled = bT.disabled = false;
+      busy = false; btn.disabled = false;
     }
-    bH.addEventListener("click", () => flip("H"));
-    bT.addEventListener("click", () => flip("T"));
+    btn.addEventListener("click", flip);
     document.addEventListener("keydown", (e) => {
       if (location.hash !== "#coin" || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "h" || e.key === "H") flip("H");
-      if (e.key === "t" || e.key === "T") flip("T");
+      if (e.key === "f" || e.key === "F") flip();
     });
   })();
 

@@ -243,8 +243,8 @@ a { color: inherit; text-decoration: none; }
 .entry .w { margin: 4px 0 0; color: var(--dim); font-size: 1.1rem; }
 
 .coin {
-  margin: 18px auto 6px; text-align: left; width: max-content; min-height: 6.7em;
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  margin: 18px auto 6px; text-align: left; width: max-content; min-height: 7.9em;
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, "DejaVu Sans Mono", "Liberation Mono", "Courier New", monospace;
   font-size: clamp(1.05rem, 5vw, 1.35rem); line-height: 1.12; white-space: pre; color: var(--ink);
 }
 .coin-msg { text-align: center; min-height: 1.6em; font-size: 1.6rem; }
