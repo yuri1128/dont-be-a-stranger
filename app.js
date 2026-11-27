@@ -397,7 +397,7 @@
           if (!r.ok) throw new Error("HTTP " + r.status);
           res = (await r.json()).resources || [];
         }
-        const fresh = new Map(res.map((x) => [x.public_id, { id: x.public_id, version: x.version, t: x.created_at || "" }]));
+        const fresh = new Map(res.filter((x) => !x.width || x.width >= 200).map((x) => [x.public_id, { id: x.public_id, version: x.version, t: x.created_at || "" }]));   // skips the tiny 1px test entries from the first version
         for (const [id, e] of entries) if (e.opt && Date.now() - e.optAt < 180000 && !fresh.has(id)) fresh.set(id, e);
         entries = fresh;
         render();
