@@ -119,7 +119,6 @@
     const logEl = $("#log");
     const fileInput = $("#file");
     const addBtn = $("#add-btn");
-    const refreshBtn = $("#refresh");
     const yearsEl = $("#years");
 
     let viewing = current;
@@ -142,7 +141,6 @@
       const ok = canUpload() && !busy;
       addBtn.setAttribute("aria-disabled", ok ? "false" : "true");
       fileInput.disabled = !ok;
-      refreshBtn.disabled = !configured;
     }
 
     /* --- years (only shows once there is more than one edition) --- */
@@ -271,7 +269,6 @@
 
     fileInput.addEventListener("change", () => upload(fileInput.files));
     addBtn.addEventListener("click", (e) => { if (!canUpload() || busy) e.preventDefault(); });
-    refreshBtn.addEventListener("click", () => { setStatus("refreshing..."); load(); });
 
     return {
       enter() {
