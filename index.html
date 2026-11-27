@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
+  <!-- Keeps search engines from listing the page. Remove this line if you ever want it public. -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>DON'T BE A STRANGER</title>
+  <meta name="description" content="Don't be a stranger.">
+  <meta property="og:title" content="DON'T BE A STRANGER">
+  <meta property="og:description" content="Don't be a stranger.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='black'/%3E%3Ctext x='16' y='22' font-size='14' fill='white' text-anchor='middle' font-family='monospace'%3EYS%3C/text%3E%3C/svg%3E">
+  <link rel="preload" href="fonts/silkscreen-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/vt323-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="screen">
+
+    <header class="top">
+      <h1 class="title">DON'T BE<br class="br"> A STRANGER</h1>
+      <p class="date" id="date">NOV 28, 2026</p>
+    </header>
+
+    <main class="term">
+
+      <!-- ===== HOME ===== -->
+      <section class="view" id="v-home">
+        <p class="line type">&gt; hello friend ૮ ․ ․ ྀིა</p>
+        <p class="line dim type">&gt; pick a number.</p>
+        <nav class="menu" id="menu" aria-label="Menu">
+          <a class="item" href="#album">
+            <span class="k">[1]</span>
+            <span class="n">THE ALBUM</span>
+            <span class="d">leave a frame. see who was here.</span>
+          </a>
+          <a class="item" href="#fortune">
+            <span class="k">[2]</span>
+            <span class="n">YOUR FORTUNE</span>
+            <span class="d">ask. don't overthink it.</span>
+          </a>
+        </nav>
+        <p class="line prompt" aria-hidden="true">&gt;<span class="cursor">_</span></p>
+
+        <div class="cat-wrap">
+          <button class="cat" id="cat-btn" type="button" aria-label="A small ASCII cat smoking a cigarette. Tap to poke it.">
+<pre id="cat" aria-hidden="true">                {
+                 }
+                {
+  /\_/\          }
+ ( -.- )=========*
+  > ^ <</pre>
+          </button>
+          <p class="note" id="cat-note" aria-live="polite">&nbsp;</p>
+        </div>
+      </section>
+
+      <!-- ===== THE ALBUM ===== -->
+      <section class="view" id="v-album" hidden aria-labelledby="album-h">
+        <h2 class="sr-only" id="album-h">The Album</h2>
+        <div class="subhead">
+          <p class="line">&gt; album <span id="al-year"></span></p>
+          <a class="mini" href="#">[0] BACK</a>
+        </div>
+        <div class="years" id="years" hidden></div>
+
+        <div class="bar">
+          <label class="btn primary" id="add-btn" for="file">[+] ADD PHOTOS</label>
+          <input class="sr-only" id="file" type="file" accept="image/*" multiple>
+          <button class="btn" id="refresh" type="button">[R] REFRESH</button>
+        </div>
+
+        <div id="log" aria-live="polite"></div>
+        <div class="grid" id="grid" role="list" aria-label="Photos"></div>
+        <p class="line dim" id="al-status">&gt; loading...</p>
+        <p class="small">only people holding a matchbook have this link. ask before posting anyone's face.</p>
+        <a class="btn back" href="#">[0] BACK TO MENU</a>
+      </section>
+
+      <!-- ===== YOUR FORTUNE ===== -->
+      <section class="view" id="v-fortune" hidden aria-labelledby="fortune-h">
+        <h2 class="sr-only" id="fortune-h">Your Fortune</h2>
+        <div class="subhead">
+          <p class="line">&gt; fortune</p>
+          <a class="mini" href="#">[0] BACK</a>
+        </div>
+        <p class="line dim">&gt; hold still. it's listening.</p>
+
+        <div class="slipwrap">
+          <p class="slip-empty" id="slip-empty">( nothing yet )</p>
+          <div class="slip" id="slip" hidden aria-hidden="true">
+            <div class="slip-top"><span>YS</span><span id="slip-no">NO. 00</span></div>
+            <p class="slip-text"><span id="slip-vis"></span><span id="slip-ghost" class="untyped"></span></p>
+            <div class="slip-bot" id="slip-lucky"></div>
+          </div>
+        </div>
+
+        <p class="line dim" id="f-status">&nbsp;</p>
+        <div class="bar">
+          <button class="btn primary" id="reveal" type="button">REVEAL YOUR FORTUNE</button>
+        </div>
+        <p class="sr-only" id="fortune-sr" aria-live="polite"></p>
+        <noscript><p class="small">The fortunes need JavaScript. Some things can't be left to chance.</p></noscript>
+        <a class="btn back" href="#">[0] BACK TO MENU</a>
+      </section>
+
+    </main>
+
+    <footer class="foot">
+      <span>YS</span>
+      <span id="ed">2026</span>
+    </footer>
+
+  </div>
+
+  <!-- ===== PHOTO VIEWER ===== -->
+  <div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <div class="lb-top">
+      <span id="lb-count">001/001</span>
+      <button class="lb-x" id="lb-close" type="button" aria-label="Close">[X] CLOSE</button>
+    </div>
+    <div class="lb-stage" id="lb-stage"><img id="lb-img" alt=""></div>
+    <div class="lb-bot">
+      <button class="btn" id="lb-prev" type="button" aria-label="Previous photo">&lt; PREV</button>
+      <span class="lb-hint">hold the photo to save it</span>
+      <button class="btn" id="lb-next" type="button" aria-label="Next photo">NEXT &gt;</button>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="fortunes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

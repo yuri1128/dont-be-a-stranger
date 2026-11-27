@@ -1,0 +1,237 @@
+/* ============================================================
+   DON'T BE A STRANGER — styles (retro terminal)
+   Black, white, pixel type. Built phone-first for a ~402 x 874 pt
+   screen (iPhone 17 Pro): safe-area padding for the Dynamic Island and
+   home bar, dynamic-viewport heights so Safari's toolbar never covers
+   anything, and 52px+ tap targets.
+   ============================================================ */
+
+@font-face {
+  font-family: "Silkscreen";
+  src: url("fonts/silkscreen-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "VT323";
+  src: url("fonts/vt323-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+
+:root {
+  --bg: #000;
+  --ink: #f4f4f2;
+  --dim: #9a9a9a;
+  --line: #3b3b3b;
+  --pix: "Silkscreen", "Courier New", monospace;   /* title, labels, buttons */
+  --txt: "VT323", "Courier New", monospace;        /* terminal text, fortunes */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+html.lock { overflow: hidden; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  padding:
+    max(12px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--txt);
+  font-size: 1.4rem;
+  line-height: 1.2;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+[hidden] { display: none !important; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px dotted var(--ink); outline-offset: 3px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- THE SCREEN (dotted frame, like the matchbook) ---------- */
+.screen {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  border: 6px dotted var(--ink);
+  border-radius: 28px;
+  padding: 28px 16px 18px;
+}
+
+.top { text-align: center; padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px dotted var(--dim); }
+.title {
+  margin: 0; font-family: var(--pix); font-weight: 400;
+  font-size: clamp(1.2rem, 6.3vw, 2.2rem);
+  letter-spacing: .05em; line-height: 1.5;
+}
+.br { display: inline; }
+.date {
+  margin: 12px 0 0; font-family: var(--pix); font-size: .72rem;
+  letter-spacing: .2em; color: var(--dim);
+}
+
+.term { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.view { flex: 1; display: flex; flex-direction: column; }
+
+/* ---------- TERMINAL TEXT ---------- */
+.line { margin: 0 0 .4em; font-size: 1.45rem; min-height: 1.2em; overflow-wrap: anywhere; }
+.dim { color: var(--dim); }
+.small { margin: 16px 0 0; color: var(--dim); font-size: 1.1rem; }
+.cursor { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ---------- MENU ---------- */
+.menu { margin: 18px 0 10px; display: grid; gap: 12px; }
+.menu.pending { opacity: 0; }
+
+.item {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center;
+  min-height: 68px; padding: 12px 14px;
+  border: 2px solid var(--ink);
+  touch-action: manipulation;
+}
+.item .k { grid-row: span 2; font-family: var(--pix); font-size: 1.1rem; }
+.item .n { font-family: var(--pix); font-size: .95rem; letter-spacing: .08em; }
+.item .d { color: var(--dim); font-size: 1.15rem; line-height: 1.1; }
+.item:active { background: var(--ink); color: var(--bg); }
+.item:active .d { color: var(--bg); }
+
+/* ---------- BUTTONS ---------- */
+.bar { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.bar .btn { flex: 1 1 150px; }
+
+.btn {
+  appearance: none; -webkit-appearance: none; border-radius: 0;
+  display: inline-flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 54px; padding: 12px 16px;
+  border: 2px solid var(--ink); background: transparent; color: var(--ink);
+  font-family: var(--pix); font-size: .78rem; letter-spacing: .08em; line-height: 1.25;
+  cursor: pointer; touch-action: manipulation;
+}
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:active { background: var(--ink); color: var(--bg); }
+.btn.primary:active { background: transparent; color: var(--ink); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .4; pointer-events: none; }
+
+/* big back button at the bottom of each screen, small one at the top */
+.btn.back { display: flex; width: 100%; margin-top: 22px; font-size: .85rem; }
+.subhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.subhead .line { flex: 1; min-width: 0; }
+.mini {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; margin-top: -8px; padding: 0 12px;
+  border: 2px solid var(--ink);
+  font-family: var(--pix); font-size: .68rem; letter-spacing: .1em; color: var(--ink);
+  touch-action: manipulation;
+}
+.mini:active { background: var(--ink); color: var(--bg); }
+
+/* the cat */
+.cat-wrap { margin-top: auto; padding-top: 28px; text-align: center; }
+.cat {
+  appearance: none; -webkit-appearance: none; border-radius: 0;
+  background: none; border: 0; margin: 0; padding: 8px;
+  color: var(--ink); font: inherit; cursor: pointer; touch-action: manipulation;
+}
+.cat pre {
+  margin: 0; text-align: left;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  font-size: clamp(.95rem, 4.4vw, 1.3rem); line-height: 1.12; white-space: pre;
+}
+.note { margin: 4px 0 0; min-height: 1.2em; color: var(--dim); font-size: 1.2rem; }
+
+/* ---------- ALBUM ---------- */
+.years { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 6px; }
+.year {
+  appearance: none; -webkit-appearance: none; border-radius: 0;
+  min-height: 44px; padding: 8px 14px; border: 2px solid var(--ink);
+  background: transparent; color: var(--ink);
+  font-family: var(--pix); font-size: .75rem; letter-spacing: .1em; cursor: pointer;
+}
+.year[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+#log .line { margin: 0 0 .15em; color: var(--dim); }
+
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0 14px; }
+.cell {
+  appearance: none; -webkit-appearance: none; border-radius: 0;
+  position: relative; display: block; width: 100%; padding: 0; margin: 0; overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background: #0b0b0b; border: 1px solid var(--line);
+  cursor: pointer; touch-action: manipulation;
+}
+.cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.grid.gray .cell img { filter: grayscale(1) contrast(1.05); }
+.cell .n {
+  position: absolute; left: 5px; bottom: 4px;
+  font-family: var(--pix); font-size: .55rem; letter-spacing: .08em; color: var(--ink);
+  text-shadow: 0 0 3px #000, 0 0 3px #000;
+}
+
+/* ---------- PHOTO VIEWER ---------- */
+.lb {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; flex-direction: column;
+  background: #000; overscroll-behavior: contain;
+  padding:
+    env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.lb-top, .lb-bot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 14px;
+  font-family: var(--pix); font-size: .7rem; letter-spacing: .1em;
+}
+.lb-x {
+  appearance: none; -webkit-appearance: none; border: 0; border-radius: 0; background: none;
+  color: var(--ink); font: inherit; letter-spacing: inherit;
+  min-height: 48px; padding: 0 6px; cursor: pointer; touch-action: manipulation;
+}
+.lb-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 8px; touch-action: pan-y pinch-zoom; }
+.lb-stage img { max-width: 100%; max-height: 100%; object-fit: contain; -webkit-touch-callout: default; }
+.lb-hint { color: var(--dim); font-family: var(--txt); font-size: 1.05rem; letter-spacing: 0; text-align: center; line-height: 1.05; }
+.lb-bot .btn { min-height: 52px; padding: 10px 12px; }
+
+/* ---------- FORTUNE ---------- */
+.slipwrap {
+  position: relative; min-height: 210px; margin: 16px 0 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.slip-empty { margin: 0; color: var(--line); font-size: 1.2rem; }
+.slip { width: 100%; border: 2px dotted var(--ink); padding: 16px 16px 14px; }
+.slip-top, .slip-bot {
+  display: flex; justify-content: space-between; gap: 10px;
+  font-family: var(--pix); font-size: .6rem; letter-spacing: .1em; color: var(--dim);
+}
+.slip-bot { justify-content: flex-start; }
+.slip-text { margin: 14px 0 16px; font-size: 1.95rem; line-height: 1.1; }
+.untyped { visibility: hidden; }  /* letters not typed yet — keeps the box from jumping */
+
+/* ---------- FOOTER ---------- */
+.foot {
+  margin-top: 26px; padding-top: 14px; border-top: 1px dotted var(--line);
+  display: flex; justify-content: space-between;
+  font-family: var(--pix); font-size: .6rem; letter-spacing: .2em; color: var(--dim);
+}
+
+/* ---------- MORE ROOM (tablets / desktop) ---------- */
+@media (min-width: 560px) {
+  .br { display: none; }
+  .screen { max-width: 640px; margin: 0 auto; }
+  .grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ---------- RESPECT "REDUCE MOTION" ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .cursor { animation: none; }
+}
