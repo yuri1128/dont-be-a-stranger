@@ -226,6 +226,22 @@ a { color: inherit; text-decoration: none; }
   font-size: clamp(1rem, 4.6vw, 1.25rem); line-height: 1.12; white-space: pre; color: var(--ink);
 }
 
+/* ---------- GUEST BOOK ---------- */
+.bookform { display: flex; flex-direction: column; gap: 8px; margin: 14px 0 8px; }
+.lbl { color: var(--dim); font-size: 1.15rem; margin-top: 6px; }
+.field {
+  appearance: none; -webkit-appearance: none; border-radius: 0; width: 100%;
+  background: transparent; color: var(--ink); border: 2px solid var(--ink);
+  padding: 10px 12px; font-family: var(--txt); font-size: 20px; line-height: 1.15; /* 16px+ stops iOS zoom */
+  resize: none; caret-color: var(--ink);
+}
+.field:focus { outline: 2px dotted var(--ink); outline-offset: 3px; }
+.count { margin: 0; text-align: right; }
+.entries { display: grid; gap: 14px; margin: 14px 0 4px; }
+.entry { border-left: 2px dotted var(--ink); padding: 2px 0 2px 12px; }
+.entry .m { margin: 0; font-size: 1.5rem; line-height: 1.1; overflow-wrap: anywhere; }
+.entry .w { margin: 4px 0 0; color: var(--dim); font-size: 1.1rem; }
+
 /* ---------- FOOTER ---------- */
 .foot {
   margin-top: 26px; padding-top: 14px; border-top: 1px dotted var(--line);

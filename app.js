@@ -24,18 +24,20 @@
   document.title = "DON'T BE A STRANGER" + (current.date ? " · " + current.date : "");
 
   /* ---------- SCREENS (home / album / fortune) via the #hash ---------- */
-  const views = { home: $("#v-home"), album: $("#v-album"), fortune: $("#v-fortune") };
+  const views = { home: $("#v-home"), album: $("#v-album"), fortune: $("#v-fortune"), book: $("#v-book") };
   let active = null;
 
   function show(name) {
     if (name === active) return;
     if (active === "album") album.leave();
+    if (active === "book") book.leave();
     if (active === "home") smoke.stop();
     active = name;
     for (const k in views) views[k].hidden = k !== name;
     window.scrollTo(0, 0);
     if (name === "home") { boot(); smoke.start(); }
     if (name === "album") album.enter();
+    if (name === "book") book.enter();
   }
   function route() {
     const h = location.hash.replace("#", "");
@@ -54,6 +56,7 @@
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === "1") location.hash = "album";
     if (e.key === "2") location.hash = "fortune";
+    if (e.key === "3") location.hash = "book";
     if (e.key === "0") location.hash = "";
   });
 
@@ -321,6 +324,135 @@
     tx = null;
     if (Math.abs(dx) > 50) stepLb(dx < 0 ? -1 : 1);   // swipe left = newer
   }, { passive: true });
+
+  /* ============================================================
+     THE GUEST BOOK — no server needed.
+     Each line is saved as a tiny 1x1 image on Cloudinary whose
+     public_id *is* the (encoded) message. The list is read back
+     with the same "list by tag" trick the album uses.
+     To remove a line: Cloudinary > Media Library > delete it.
+     ============================================================ */
+  const book = (() => {
+    const cc = cfg.cloudinary || {};
+    const configured = !!(cc.cloudName && cc.uploadPreset);
+    const tag = current.tag + "-book";
+    const form = $("#book-form"), nameEl = $("#b-name"), msgEl = $("#b-msg");
+    const countEl = $("#b-count"), sendBtn = $("#b-send");
+    const statusEl = $("#b-status"), listEl = $("#b-list");
+    const PIXEL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+    const MAX_BYTES = 150;                       // keeps the public_id under Cloudinary's limit
+    let entries = new Map(), lastSig = "", pollId = null, busy = false;
+
+    const setStatus = (t) => { statusEl.textContent = t ? "> " + t : ""; };
+    const enc = (str) => {
+      const bytes = new TextEncoder().encode(str);
+      let bin = ""; bytes.forEach((b) => { bin += String.fromCharCode(b); });
+      return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    };
+    const dec = (b64) => {
+      try {
+        const s = b64.replace(/-/g, "+").replace(/_/g, "/");
+        const bin = atob(s + "=".repeat((4 - (s.length % 4)) % 4));
+        return new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0)));
+      } catch (e) { return null; }
+    };
+    const parse = (id) => {
+      const m = /^gb_([A-Za-z0-9_-]+?)_[a-z0-9]{4}$/.exec(id.split("/").pop());
+      if (!m) return null;
+      const raw = dec(m[1]);
+      if (raw == null) return null;
+      const i = raw.indexOf("\n");
+      return { name: (i < 0 ? "" : raw.slice(0, i)).trim(), msg: (i < 0 ? raw : raw.slice(i + 1)).trim() };
+    };
+
+    function render() {
+      const list = [...entries.values()].filter((e) => e.msg).sort((a, b) => (b.t || "").localeCompare(a.t || ""));
+      const sig = list.map((e) => e.id).join("|");
+      if (sig === lastSig) return;
+      lastSig = sig;
+      listEl.textContent = "";
+      list.forEach((e) => {
+        const d = document.createElement("div"); d.className = "entry";
+        const m = document.createElement("p"); m.className = "m"; m.textContent = e.msg;
+        const w = document.createElement("p"); w.className = "w";
+        let when = "";
+        try { when = new Date(e.t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).toUpperCase(); } catch (x) { /* ignore */ }
+        w.textContent = "— " + (e.name || "a stranger") + (when ? " · " + when : "");
+        d.append(m, w); listEl.appendChild(d);
+      });
+      setStatus(list.length ? list.length + (list.length === 1 ? " line" : " lines") : "nobody's signed yet. be the first.");
+    }
+
+    async function load() {
+      if (!configured) { setStatus("not open yet. check back at the party."); return; }
+      try {
+        const r = await fetch("https://res.cloudinary.com/" + cc.cloudName + "/image/list/" + encodeURIComponent(tag) + ".json", { cache: "no-store" });
+        let res = [];
+        if (r.status !== 404) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          res = (await r.json()).resources || [];
+        }
+        const fresh = new Map();
+        res.forEach((x) => { const p = parse(x.public_id); if (p) fresh.set(x.public_id, { id: x.public_id, t: x.created_at || "", ...p }); });
+        for (const [id, e] of entries) if (e.opt && Date.now() - e.optAt < 120000 && !fresh.has(id)) fresh.set(id, e);
+        entries = fresh;
+        render();
+        if (!entries.size) setStatus("nobody's signed yet. be the first.");
+      } catch (err) {
+        console.warn("[guest book] couldn't load:", err.message);
+        if (!entries.size) setStatus("can't reach the book right now. try again in a minute.");
+      }
+    }
+
+    const bytesLeft = () => MAX_BYTES - new TextEncoder().encode(nameEl.value.trim() + "\n" + msgEl.value.trim()).length;
+    function updateCount() {
+      const left = Math.min(msgEl.maxLength - msgEl.value.length, bytesLeft());
+      countEl.textContent = left >= 0 ? left + " left" : "a bit shorter please";
+    }
+    nameEl.addEventListener("input", updateCount);
+    msgEl.addEventListener("input", updateCount);
+
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      if (busy || !configured) return;
+      const name = nameEl.value.trim().replace(/\s+/g, " "), msg = msgEl.value.trim().replace(/\s+/g, " ");
+      if (!msg) { setStatus("write something first."); msgEl.focus(); return; }
+      if (bytesLeft() < 0) { setStatus("a bit shorter please."); return; }
+      busy = true; sendBtn.disabled = true; setStatus("signing...");
+      const id = "gb_" + enc(name + "\n" + msg) + "_" + Math.random().toString(36).slice(2, 6).padEnd(4, "0");
+      try {
+        await new Promise((resolve, reject) => {
+          const x = new XMLHttpRequest();
+          x.open("POST", "https://api.cloudinary.com/v1_1/" + cc.cloudName + "/image/upload");
+          x.onload = () => {
+            let j = {}; try { j = JSON.parse(x.responseText); } catch (e) { /* ignore */ }
+            if (x.status >= 200 && x.status < 300 && j.public_id) resolve(j);
+            else reject(new Error((j.error && j.error.message) || "error " + x.status));
+          };
+          x.onerror = () => reject(new Error("no connection"));
+          const fd = new FormData();
+          fd.append("file", PIXEL);
+          fd.append("upload_preset", cc.uploadPreset);
+          fd.append("tags", tag);
+          fd.append("public_id", id);
+          x.send(fd);
+        });
+        entries.set(id, { id, name, msg, t: new Date().toISOString(), opt: true, optAt: Date.now() });
+        lastSig = ""; render();
+        msgEl.value = ""; updateCount();
+        setStatus("signed. thanks for stopping by.");
+      } catch (err) {
+        console.warn("[guest book] couldn't sign:", err.message);
+        setStatus("didn't go through (" + (err.message || "error") + "). try again.");
+      }
+      busy = false; sendBtn.disabled = false;
+    });
+
+    return {
+      enter() { updateCount(); load(); clearInterval(pollId); pollId = setInterval(() => { if (!document.hidden) load(); }, 30000); },
+      leave() { clearInterval(pollId); pollId = null; }
+    };
+  })();
 
   /* ============================================================
      YOUR FORTUNE

@@ -44,6 +44,11 @@
             <span class="n">YOUR FORTUNE</span>
             <span class="d">ask. don't overthink it.</span>
           </a>
+          <a class="item" href="#book">
+            <span class="k">[3]</span>
+            <span class="n">THE GUEST BOOK</span>
+            <span class="d">sign it. say hi. leave a line.</span>
+          </a>
         </nav>
         <p class="line prompt" aria-hidden="true">&gt;<span class="cursor">_</span></p>
 
@@ -78,6 +83,27 @@
         <div class="grid" id="grid" role="list" aria-label="Photos"></div>
         <p class="line dim" id="al-status">&gt; loading...</p>
         <p class="small">to see the newest photos, refresh the whole page.</p>
+        <a class="btn back" href="#">[0] BACK TO MENU</a>
+      </section>
+
+      <!-- ===== THE GUEST BOOK ===== -->
+      <section class="view" id="v-book" hidden aria-labelledby="book-h">
+        <h2 class="sr-only" id="book-h">The Guest Book</h2>
+        <div class="subhead">
+          <p class="line">&gt; guest book</p>
+          <a class="mini" href="#">[0] BACK</a>
+        </div>
+        <form class="bookform" id="book-form" autocomplete="off">
+          <label class="lbl" for="b-name">&gt; your name (optional)</label>
+          <input class="field" id="b-name" type="text" maxlength="16" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="next">
+          <label class="lbl" for="b-msg">&gt; leave a line</label>
+          <textarea class="field" id="b-msg" rows="3" maxlength="100" enterkeyhint="send"></textarea>
+          <p class="small count" id="b-count">100 left</p>
+          <button class="btn primary" id="b-send" type="submit">[+] SIGN THE BOOK</button>
+        </form>
+        <p class="line dim" id="b-status" aria-live="polite">&gt; loading...</p>
+        <div class="entries" id="b-list"></div>
+        <p class="small">to see the newest lines, refresh the whole page.</p>
         <a class="btn back" href="#">[0] BACK TO MENU</a>
       </section>
 
