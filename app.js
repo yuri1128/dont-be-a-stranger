@@ -362,6 +362,91 @@
     while (s.size < 3) s.add(1 + Math.floor(Math.random() * 49));
     return "LUCKY " + [...s].sort((a, b) => a - b).map((n) => pad(n)).join(" · ");
   }
+
+  /* ---- kawaii ascii critters: one (random) per fortune, 2-frame loop ---- */
+  const CRITTERS = [
+    { // bunny
+      a: String.raw`  (\_/)
+  (^.^)
+ o(")(")`,
+      b: String.raw`  (\_/)
+  (-.-)
+ o(")(")` },
+    { // cat
+      a: String.raw`  /\_/\
+ ( o.o )
+  > ^ <`,
+      b: String.raw`  /\_/\
+ ( -.- )
+  > ^ <` },
+    { // bear
+      a: String.raw` ()_()
+ (o.o)
+ (")_(")`,
+      b: String.raw` ()_()
+ (-.-)
+ (")_(")` },
+    { // owl
+      a: String.raw`  ,_,
+ (o,o)
+ /)__)
+  " "`,
+      b: String.raw`  ,_,
+ (-,-)
+ /)__)
+  " "` },
+    { // ghost
+      a: String.raw`  .-.
+ (o o)
+ | O |
+ '~^~'`,
+      b: String.raw`  .-.
+ (- -)
+ | O |
+ '^~^'` },
+    { // heart
+      a: String.raw` .--.  .--.
+(    \/    )
+ \  ^__^  /
+  '.    .'
+    '..'`,
+      b: String.raw` .--.  .--.
+(    \/    )
+ \  -__-  /
+  '.    .'
+    '..'` },
+    { // frog
+      a: String.raw`  @..@
+ (----)
+( >__< )
+ ^^  ^^`,
+      b: String.raw`  -..-
+ (----)
+( >__< )
+ ^^  ^^` }
+  ];
+  const SPARK = [" *  .  * ", " .  *  . "];
+  const critEl = $("#crit");
+  let critTimer = 0, critPick = -1, critFrame = 0;
+  function critText(c, f) {
+    const body = (f ? c.b : c.a).split("\n");
+    const blanks = Math.max(0, 5 - body.length);
+    return SPARK[f] + "\n" + body.join("\n") + "\n".repeat(blanks);
+  }
+  function showCritter() {
+    if (!critEl) return;
+    let i;
+    do { i = Math.floor(Math.random() * CRITTERS.length); } while (CRITTERS.length > 1 && i === critPick);
+    critPick = i; critFrame = 0;
+    critEl.textContent = critText(CRITTERS[i], 0);
+    clearInterval(critTimer);
+    if (reduce) return;
+    critTimer = setInterval(() => {
+      if (location.hash !== "#fortune" || document.hidden) return;
+      critFrame ^= 1;
+      critEl.textContent = critText(CRITTERS[critPick], critFrame);
+    }, 650);
+  }
   async function typeInto(text) {
     if (reduce) { vis.textContent = text; ghost.textContent = ""; return; }
     for (let i = 1; i <= text.length; i++) {   // untyped letters stay in the layout (invisible)
@@ -392,6 +477,7 @@
     ghost.textContent = text;
     slipEmpty.hidden = true;
     slip.hidden = false;
+    showCritter();
     await typeInto(text);
     sr.textContent = "Your fortune: " + text;
 

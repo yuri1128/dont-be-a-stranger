@@ -219,6 +219,13 @@ a { color: inherit; text-decoration: none; }
 .slip-text { margin: 14px 0 16px; font-size: 1.95rem; line-height: 1.1; }
 .untyped { visibility: hidden; }  /* letters not typed yet — keeps the box from jumping */
 
+.crit-wrap { text-align: center; margin: 12px 0 0; }
+.crit {
+  display: inline-block; margin: 0; text-align: left; min-height: 6.7em;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  font-size: clamp(1rem, 4.6vw, 1.25rem); line-height: 1.12; white-space: pre; color: var(--ink);
+}
+
 /* ---------- FOOTER ---------- */
 .foot {
   margin-top: 26px; padding-top: 14px; border-top: 1px dotted var(--line);
